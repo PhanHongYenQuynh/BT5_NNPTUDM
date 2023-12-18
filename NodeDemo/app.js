@@ -26,7 +26,7 @@ app.use("/users", usersRouter);
 app.use("/items", itemsRouter);
 
 mongoose.connect(
-  "mongodb+srv://demo:123456@clusterdemo.qin2uft.mongodb.net/?retryWrites=true&w=majority"
+  "mongodb+srv://Testdemo:demo123@cluster0.geqoflm.mongodb.net/"
 );
 mongoose.connection.once("open", function () {
   console.log("thanh cong");
