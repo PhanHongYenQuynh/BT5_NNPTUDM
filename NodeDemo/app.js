@@ -8,6 +8,7 @@ var mongoose = require("mongoose");
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var itemsRouter = require("./routes/items");
+var producRouter = require("./routes/product");
 
 var app = express();
 
@@ -24,6 +25,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/items", itemsRouter);
+app.use("/product", producRouter);
 
 mongoose.connect(
   "mongodb+srv://Testdemo:demo123@cluster0.geqoflm.mongodb.net/"

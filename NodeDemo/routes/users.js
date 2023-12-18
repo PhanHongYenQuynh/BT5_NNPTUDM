@@ -6,10 +6,6 @@ var responseData = require('../helper/responseData');
 var modelUser = require('../models/user')
 var validate = require('../validates/user')
 const {validationResult} = require('express-validator');
-
-
-
-
 router.get('/', async function (req, res, next) {
   console.log(req.query);
   var usersAll = await modelUser.getall(req.query);
