@@ -7,8 +7,9 @@ var modelUser = require("../models/user");
 var validate = require("../validates/user");
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+var jwt = require("jsonwebtoken");
 const configs = require("../helper/configs");
+const { checkLogin } = require("../middlewares/protect");
 
 router.post("/register", validate.validator(), async function (req, res, next) {
   var errors = validationResult(req);
@@ -34,27 +35,44 @@ router.post("/register", validate.validator(), async function (req, res, next) {
   }
 });
 router.post("/login", async function (req, res, next) {
-  if (!req.body.userName || !req.body.password) {
-    responseData.responseReturn(res, 400, true, {
-      err: "Hay nhap day du username va password",
-    });
-  }
-  var user = await modelUser.getByName(req.body.userName);
-  if (!user) {
-    responseData.responseReturn(res, 400, true, {
-      err: "userName khong ton tai",
-    });
+  var result = await modelUser.login(req.body.userName, req.body.password);
+  if (result.err) {
+    responseData.responseReturn(res, 400, true, result.err);
     return;
   }
-  var result = bcrypt.compareSync(req.body.password, user.password);
-  if (!result) {
-    responseData.responseReturn(res, 400, true, { err: "password sai" });
-  }
-  var token = jwt.sign({ id: user._id }, configs.SECRET_KEY, {
-    expiresIn: configs.EXP,
-  });
+  console.log(result);
+  var token = result.getJWT();
   res.cookie("tokenJWT", token);
   responseData.responseReturn(res, 200, true, token);
 });
+router.get(
+  "/me",
+  async function (req, res, next) {
+    var result = await checkLogin(req);
+    if (result.err) {
+      responseData.responseReturn(res, 400, true, result.err);
+      return;
+    }
+    console.log(result);
+    req.userID = result;
+    next();
+  },
+  async function (req, res, next) {
+    var user = await modelUser.getOne(req.userID);
+    var role = user.role;
+    console.log(role);
+    var DSRole = ["admin", "publisher"];
+    if (DSRole.includes(role)) {
+      next();
+    } else {
+      responseData.responseReturn(res, 403, true, "ban khong du quyen");
+    }
+  },
+  async function (req, res, next) {
+    //get all
+    var user = await modelUser.getOne(req.userID);
+    res.send({ done: user });
+  }
+);
 
 module.exports = router;
