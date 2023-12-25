@@ -1,4 +1,4 @@
-var SchemaUser = require('../schema/user')
+var SchemaUser = require("../schema/user");
 
 module.exports = {
   getall: function (query) {
@@ -25,10 +25,10 @@ module.exports = {
       .exec();
   },
   getOne: function (id) {
-    return modelUser.findById(id);
+    return SchemaUser.findById(id);
   },
   getByName: function (name) {
-    return SchemaUser.findOne({}).exec();
+    return SchemaUser.findOne({ userName: name }).exec();
   },
   createUser: function (user) {
     return new SchemaUser(user).save();

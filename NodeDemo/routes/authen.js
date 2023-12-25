@@ -9,7 +9,8 @@ const { validationResult } = require("express-validator");
 const bcrypt = require("bcrypt");
 var jwt = require("jsonwebtoken");
 const configs = require("../helper/configs");
-const { checkLogin } = require("../middlewares/protect");
+const { checkLogin, checkRole } = require("../middlewares/protect");
+
 
 router.post("/register", validate.validator(), async function (req, res, next) {
   var errors = validationResult(req);
@@ -45,34 +46,41 @@ router.post("/login", async function (req, res, next) {
   res.cookie("tokenJWT", token);
   responseData.responseReturn(res, 200, true, token);
 });
-router.get(
-  "/me",
-  async function (req, res, next) {
-    var result = await checkLogin(req);
-    if (result.err) {
-      responseData.responseReturn(res, 400, true, result.err);
-      return;
-    }
-    console.log(result);
-    req.userID = result;
-    next();
-  },
-  async function (req, res, next) {
-    var user = await modelUser.getOne(req.userID);
-    var role = user.role;
-    console.log(role);
-    var DSRole = ["admin", "publisher"];
-    if (DSRole.includes(role)) {
-      next();
-    } else {
-      responseData.responseReturn(res, 403, true, "ban khong du quyen");
-    }
-  },
-  async function (req, res, next) {
-    //get all
-    var user = await modelUser.getOne(req.userID);
-    res.send({ done: user });
-  }
-);
+router.get("/me", checkLogin, checkRole(["admin", "publisher"]), async function (req, res, next) {
+  // req.userID is available due to the checkLogin middleware
+
+  var user = await modelUser.getOne(req.userID);
+  res.send({ done: user });
+});
+
+// router.get(
+//   "/me",
+//   async function (req, res, next) {
+//     var result = await checkLogin(req);
+//     if (result.err) {
+//       responseData.responseReturn(res, 400, true, result.err);
+//       return;
+//     }
+//     console.log(result);
+//     req.userID = result;
+//     next();
+//   },
+//   async function (req, res, next) {
+//     var user = await modelUser.getOne(req.userID);
+//     var role = user.role;
+//     console.log(role);
+//     var DSRole = ["admin", "publisher"];
+//     if (DSRole.includes(role)) {
+//       next();
+//     } else {
+//       responseData.responseReturn(res, 403, true, "ban khong du quyen");
+//     }
+//   },
+//   async function (req, res, next) {
+//     //get all
+//     var user = await modelUser.getOne(req.userID);
+//     res.send({ done: user });
+//   }
+// );
 
 module.exports = router;
