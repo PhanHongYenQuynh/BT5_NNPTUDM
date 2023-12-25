@@ -1,34 +1,46 @@
-// protect.js
 var jwt = require("jsonwebtoken");
 const configs = require("../helper/configs");
-
+var modelUser = require("../models/user");
+var responseData = require("../helper/responseData");
 module.exports = {
   checkLogin: async function (req, res, next) {
-    var token = req.headers.authorization;
-    if (!token || !token.startsWith("Bearer")) {
-      return res.status(401).json({ err: "Vui long dang nhap" });
+    var result = {};
+    var token = req.header("Authorization");
+    if (!token) {
+      result.err = "Vui long dang nhap";
     }
-
-    token = token.split(" ")[1];
-    try {
-      var userID = await jwt.verify(token, configs.SECRET_KEY);
-      req.userID = userID.id;
-      next();
-    } catch (error) {
-      return res.status(401).json({ err: "Vui long dang nhap" });
+    if (token.startsWith("Bearer")) {
+      token = token.split(" ")[1];
+      try {
+        var userID = await jwt.verify(token, configs.SECRET_KEY);
+        result = userID.id;
+      } catch (error) {
+        result.err = "Vui long dang nhap";
+      }
+    } else {
+      result.err = "Vui long dang nhap";
     }
+    if (result.err) {
+      responseData.responseReturn(res, 400, true, result.err);
+      return;
+    }
+    console.log(`result ${result}`);
+    req.userID = result;
+    next();
   },
-
-  checkRole: function (roles) {
-    return async function (req, res, next) {
+  checkRole: async function (req, res, next) {
+    try {
       var user = await modelUser.getOne(req.userID);
       var role = user.role;
-
-      if (roles.includes(role)) {
+      console.log(`role: ${role}`);
+      var DSRole = ["admins", "publisher"];
+      if (DSRole.includes(role)) {
         next();
       } else {
-        res.status(403).json({ err: "Ban khong du quyen" });
+        responseData.responseReturn(res, 403, true, "ban khong du quyen");
       }
-    };
+    } catch (error) {
+      console.error(error);
+    }
   },
 };

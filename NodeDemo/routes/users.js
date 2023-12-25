@@ -6,22 +6,12 @@ var responseData = require("../helper/responseData");
 var modelUser = require("../models/user");
 var validate = require("../validates/user");
 const { validationResult } = require("express-validator");
+const bcrypt = require("bcrypt");
+var jwt = require("jsonwebtoken");
+const configs = require("../helper/configs");
+const { checkLogin, checkRole } = require("../middlewares/protect");
 
-router.get("/", async function (req, res, next) {
-  console.log(req.query);
-  var usersAll = await modelUser.getall(req.query);
-  responseData.responseReturn(res, 200, true, usersAll);
-});
-router.get("/:id", async function (req, res, next) {
-  // get by ID
-  try {
-    var user = await modelUser.getOne(req.params.id);
-    responseData.responseReturn(res, 200, true, user);
-  } catch (error) {
-    responseData.responseReturn(res, 404, false, "khong tim thay user");
-  }
-});
-router.post("/add", validate.validator(), async function (req, res, next) {
+router.post("/register", validate.validator(), async function (req, res, next) {
   var errors = validationResult(req);
   if (!errors.isEmpty()) {
     responseData.responseReturn(
@@ -41,28 +31,24 @@ router.post("/add", validate.validator(), async function (req, res, next) {
       email: req.body.email,
       password: req.body.password,
     });
-
     responseData.responseReturn(res, 200, true, newUser);
   }
 });
-router.put("/edit/:id", async function (req, res, next) {
-  try {
-    var user = await modelUser.findByIdAndUpdate(req.params.id, req.body, {
-      returnDocument: "after",
-    });
-    responseData.responseReturn(res, 200, true, user);
-  } catch (error) {
-    responseData.responseReturn(res, 404, false, "khong tim thay user");
+router.post("/login", async function (req, res, next) {
+  var result = await modelUser.login(req.body.userName, req.body.password);
+  if (result.err) {
+    responseData.responseReturn(res, 400, true, result.err);
+    return;
   }
+  console.log(result);
+  var token = result.getJWT();
+  res.cookie("tokenJWT", token);
+  responseData.responseReturn(res, 200, true, token);
 });
-router.delete("/delete/:id", function (req, res, next) {
-  //delete by Id
-  try {
-    var user = modelUser.findByIdAndDelete(req.params.id);
-    responseData.responseReturn(res, 200, true, "xoa thanh cong");
-  } catch (error) {
-    responseData.responseReturn(res, 404, false, "khong tim thay user");
-  }
+router.get("/me", checkLogin, checkRole, async function (req, res, next) {
+  //get all
+  var user = await modelUser.getOne(req.userID);
+  res.send({ done: user });
 });
 
 module.exports = router;
