@@ -12,7 +12,7 @@ var transport = nodemailer.createTransport({
 });
 
 
-const imageLinkTest = `https://t4.ftcdn.net/jpg/03/03/62/45/240_F_303624505_u0bFT1Rnoj8CMUSs8wMCwoKlnWlh5Jiq.jpg`;
+const imageLinkTest = `https://th.bing.com/th/id/R.d1fa037b255c3dab37cf6a89f8a1632c?rik=4pmJ8FdWyOIY8w&pid=ImgRaw&r=0`;
 module.exports = {
     send: async function (email, message) {
         await transport.sendMail({
