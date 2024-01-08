@@ -24,8 +24,8 @@ router.get('/:id', async function (req, res, next) {// get by ID
 });
 router.post('/add', validate.addValidator(),
   async function (req, res, next) {
-    const { name, description, image, price } = req.body;
-    console.log(`name: ${name}, descritption: ${description}, image: ${image}`)
+    const { name, order, price } = req.body;
+    console.log(`name: ${name}`)
     var errors = validationResult(req);
     if (!errors.isEmpty()) {
       responseData.responseReturn(res, 400, false, errors.array().map(error => error.msg));
@@ -38,14 +38,13 @@ router.post('/add', validate.addValidator(),
     } else {
       const newProduct = await modelProduct.createProduct({
         name: name,
-        descritption: description,
-        image: image,
+        order: order,
         price: price
       })
       responseData.responseReturn(res, 200, true, newProduct);
     }
   });
-router.put('/edit/:id', validate.editValidator(['name', 'description']),
+router.put('/edit/:id', validate.editValidator(['name']),
   async function (req, res, next) {
     try {
       var errors = validationResult(req);

@@ -3,7 +3,6 @@ var mongoose = require("mongoose");
 const schema = new mongoose.Schema(
   {
     name: String,
-    price: Number,
     order: Number,
     isDelete: { type: Boolean, default: false },
   },
@@ -12,4 +11,4 @@ const schema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("product", schema);
+module.exports = mongoose.model("category", schema);

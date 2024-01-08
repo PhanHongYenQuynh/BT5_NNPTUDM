@@ -7,15 +7,11 @@ const options = {
         min: 10,
         max: 80
     },
-    description: {
-        min: 10,
-        max: 80
-    }
 };
 
 const commonValidationRules = [
     body('price').optional().isNumeric().withMessage('price không đúng định dạng'),
-    body('image').optional().isURL().withMessage('URL không đúng định dạng'),
+    body('order').optional().isNumeric().withMessage('URL không đúng định dạng'),
 ];
 
 const addValidationRules = [
@@ -23,9 +19,6 @@ const addValidationRules = [
     body('name')
         .isLength({ min: options.name.min, max: options.name.max })
         .withMessage(util.format(message.size_string_message, 'name', options.name.min, options.name.max)),
-    body('description')
-        .isLength({ min: options.description.min, max: options.description.max })
-        .withMessage(util.format(message.size_string_message, 'description', options.description.min, options.description.max))
 ];
 
 const editValidationRules = (fieldsToValidate) => {
@@ -35,11 +28,6 @@ const editValidationRules = (fieldsToValidate) => {
                 .isLength({ min: options.name.min, max: options.name.max })
                 .withMessage(util.format(message.size_string_message, 'name', options.name.min, options.name.max))
         ] : []),
-        ...(fieldsToValidate && fieldsToValidate.includes('description') ? [
-            body('description')
-                .isLength({ min: options.description.min, max: options.description.max })
-                .withMessage(util.format(message.size_string_message, 'description', options.description.min, options.description.max))
-        ] : [])
     ];
 
     return [...commonValidationRules, ...specificValidationRules];
